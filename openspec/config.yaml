@@ -1,0 +1,111 @@
+schema: spec-driven
+
+context: |
+  Project: Smart Office Lunch Tracking System (Face Recognition Based)
+
+  Goal:
+  Build an internal office application (300–500 users per day) that uses face recognition
+  to track daily lunch counts per employee and provide admin analytics.
+
+  Tech Stack:
+  - Next.js (App Router)
+  - TypeScript
+  - MongoDB
+  - Prisma (optional)
+  - face-api.js for face recognition
+  - React Webcam API (navigator.mediaDevices)
+
+  Architecture Decisions:
+  - Face detection and descriptor generation runs in browser.
+  - Backend handles matching validation and lunch record insertion.
+  - Store 128-length face descriptors (number[]).
+  - Do NOT store raw face images.
+  - Unique constraint: (userId + date) in LunchRecords.
+
+  Matching Rules:
+  - Distance metric: Euclidean
+  - Threshold: 0.6
+  - If multiple matches under threshold → choose smallest distance.
+  - Reject if no match found.
+
+  Business Rules:
+  - One lunch per employee per day.
+  - Admin-only registration.
+  - Only one face allowed in frame during scan.
+  - Scan timeout after 5 seconds.
+  - 5-second cooldown after successful scan.
+
+  Performance Expectations:
+  - Max 500 registered users.
+  - Scan response time under 300ms.
+  - Descriptor comparison done in-memory.
+
+  Security & Privacy:
+  - No raw image storage.
+  - HTTPS required.
+  - Admin authentication required.
+  - Employee consent required before registration.
+
+  State Machine (Scan Flow):
+  IDLE → CAMERA_LOADING → SCANNING → MATCHING → SUCCESS | ALREADY_TAKEN | NOT_REGISTERED | ERROR
+
+rules:
+  proposal:
+    - Must include "Problem Statement"
+    - Must include "Scope"
+    - Must include "Non-goals"
+    - Keep under 700 words
+    - Clearly define business rules
+
+  spec:
+    - Must define inputs and outputs
+    - Must define validation rules
+    - Must define edge cases
+    - Must define failure states
+    - Must define performance considerations
+    - Avoid implementation code unless necessary
+
+  api:
+    - Must define request schema
+    - Must define response schema
+    - Must define error responses
+    - Must specify HTTP status codes
+    - Must be deterministic and contract-first
+
+  data-model:
+    - Must define field types
+    - Must define required vs optional fields
+    - Must define unique constraints
+    - Must define indexes
+    - Must include example document
+
+  tasks:
+    - Break tasks into chunks of max 2 hours
+    - Each task must be independently testable
+    - Include validation criteria
+    - Avoid mixing frontend and backend in one task
+
+  ui-spec:
+    - Must define all possible UI states
+    - Must map UI states to backend responses
+    - Must define error messages
+    - Must define loading behavior
+
+  ai-matching:
+    - Must define descriptor format
+    - Must define threshold
+    - Must define distance metric
+    - Must define tie-breaking rule
+    - Must define performance limits
+
+  security:
+    - Must define authentication requirement
+    - Must define rate limiting (if applicable)
+    - Must define data storage policy
+    - Must define privacy compliance note
+
+  deployment:
+    - Must define environment variables
+    - Must define database location
+    - Must define backup strategy
+    - Must define scaling considerations
