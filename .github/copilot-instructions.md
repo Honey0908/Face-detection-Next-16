@@ -20,7 +20,7 @@ A Next.js-based internal office application that uses facial recognition to trac
 - **Server Components**: Default for data fetching and rendering
 - **Route Handlers**: For API endpoints (`src/app/api/`)
 - **Server Actions**: For mutations and form submissions
-- **Database**: MongoDB with Prisma ORM
+- **Database**: Postgres with Prisma ORM
 - **Runtime**: Node.js
 
 ### Deployment
@@ -244,7 +244,7 @@ Target scan time: **< 300ms total**
 
 **Optimization Tips**:
 - Cache model files (face-api.js)
-- Use connection pooling for MongoDB
+- Use connection pooling for postgres
 - Implement request debouncing on frontend
 - Preload models on app startup
 
@@ -263,7 +263,7 @@ Target scan time: **< 300ms total**
 
 ### ❌ DON'T:
 - Never store raw face images
-- Never expose raw MongoDB credentials
+- Never expose raw postgres credentials
 - Never skip input validation
 - Never log sensitive employee data
 - Never expose face descriptors to clients unnecessarily
@@ -555,7 +555,7 @@ export async function POST(request: NextRequest) {
 ### Performance Optimization
 - Use Server Components to reduce client JS bundle
 - Load face-api models once at app startup
-- Use connection pooling for MongoDB
+- Use connection pooling for postgres
 - Implement request deduplication
 - Cache face detection models
 
@@ -564,7 +564,7 @@ export async function POST(request: NextRequest) {
 ## 🚀 Recommended Libraries & Utilities
 
 - **face-api.js**: Face detection and descriptor extraction
-- **mongodb** or **Prisma**: Database ORM
+- **postgres** or **Prisma**: Database ORM
 - **zod**: TypeScript-first schema validation
 - **next/navigation**: Client-side routing (useRouter, useSearchParams)
 - **next/cache**: Server-side caching (revalidatePath, revalidateTag)
@@ -587,7 +587,7 @@ Track these metrics for optimization:
 
 - **Face Matching Logic**: `src/services/faceMatching.ts`
 - **API Endpoints**: `src/app/api/` directory
-- **Database Connection**: `.env.local` (MongoDB URI)
+- **Database Connection**: `.env.local` (postgres URI)
 - **Types**: `src/types/index.ts`
 - **Components**: `src/components/` directory
 

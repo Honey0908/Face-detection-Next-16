@@ -31,7 +31,7 @@ Instead of manual entry or ID cards, the system uses facial recognition to:
 ## Backend
 
 - Next.js API Routes
-- MongoDB
+- postgres
 - Prisma (optional)
 
 ## Deployment

@@ -10,7 +10,7 @@ context: |
   Tech Stack:
   - Next.js (App Router)
   - TypeScript
-  - MongoDB
+  - postgres
   - Prisma (optional)
   - face-api.js for face recognition
   - React Webcam API (navigator.mediaDevices)
