@@ -1,26 +1,51 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Design System Colors */
+  --color-primary: #8100d1;
+  --color-primary-hover: #6d00b3;
+  --color-secondary: #b500b2;
+  --color-accent: #ff52a0;
+  --color-highlight: #ffa47f;
+
+  /* Success Colors */
+  --color-success-light: #10b981;
+  --color-success: #059669;
+  --color-success-dark: #047857;
+
+  /* Error Colors */
+  --color-error-light: #ef4444;
+  --color-error: #dc2626;
+  --color-error-dark: #b91c1c;
+
+  /* Warning Colors */
+  --color-warning-light: #f59e0b;
+  --color-warning: #d97706;
+  --color-warning-dark: #b45309;
+
+  /* Info Colors */
+  --color-info-light: #3b82f6;
+  --color-info: #2563eb;
+  --color-info-dark: #1d4ed8;
+
+  /* Border Radius */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+
+  /* Box Shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Global Styles */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, system-ui, -apple-system, sans-serif);
 }
+
+/* Dark mode is handled via Tailwind's 'dark:' modifier */

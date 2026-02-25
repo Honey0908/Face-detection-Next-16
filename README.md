@@ -1,5 +1,67 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Design System
+
+This project includes a custom design system built with Tailwind CSS and follows atomic design principles.
+
+### Components
+
+- **Atoms**: Button, Input, Label, Badge, Icon, Avatar, Card
+- **Molecules**: FormField, SearchField, StatCard
+
+All components are TypeScript-first with full type safety and follow consistent design patterns.
+
+### Usage
+
+```tsx
+import { Button, FormField, Badge } from '@/components';
+
+function MyComponent() {
+  return (
+    <div>
+      <Button variant="primary" size="lg">
+        Click Me
+      </Button>
+      <FormField label="Email" type="email" required />
+      <Badge variant="success">Active</Badge>
+    </div>
+  );
+}
+```
+
+### Documentation
+
+- **Design System Guide**: See [docs/design-system.md](docs/design-system.md) for comprehensive documentation
+- **Component Template**: Use [docs/component-template.tsx](docs/component-template.tsx) when creating new components
+- **Migration Guide**: See [docs/migration-guide.md](docs/migration-guide.md) for migrating existing code
+- **Component Showcase**: Run the dev server and visit `/showcase` to see all components
+
+### Design Tokens
+
+All colors, spacing, and other design tokens are defined in `tailwind.config.ts` and can be accessed via Tailwind utilities:
+
+```tsx
+// ✅ Correct - using design tokens
+<div className="bg-primary text-white p-md rounded-lg">
+
+// ❌ Avoid - hardcoded values
+<div className="bg-[#8100D1] text-white p-[16px] rounded-lg">
+```
+
+### Enforcement
+
+ESLint rules are configured to enforce design system usage:
+
+- No hardcoded color values (hex, rgb)
+- No inline styles
+- Required accessibility attributes
+
+Run linting:
+
+```bash
+pnpm eslint 'src/**/*.{ts,tsx}'
+```
+
 ## Getting Started
 
 First, run the development server:
