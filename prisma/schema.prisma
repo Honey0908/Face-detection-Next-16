@@ -1,0 +1,68 @@
+// Prisma Schema for Face Recognition Lunch Tracking System
+//
+// This schema defines the database structure for tracking employee lunch scans
+// using facial recognition. It uses PostgreSQL as the database provider.
+//
+// Key Features:
+// - Privacy-preserving: stores face descriptors (not images)
+// - Duplicate prevention: unique constraint on userId + date
+// - Cascade deletion: removing user also removes their lunch records
+// - Optimized queries: indexes on frequently queried fields
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// User Model
+///
+/// Represents an employee registered in the system.
+/// Each user has a unique employeeId and a 128-dimensional face descriptor
+/// for facial recognition matching.
+///
+/// Relations:
+/// - One user can have many lunch records (one-to-many)
+model User {
+  id             String        @id @default(cuid()) /// Unique identifier (CUID)
+  employeeId     String        @unique /// Employee ID (e.g., "EMP001") - must be unique
+  name           String /// Full name of the employee
+  faceDescriptor Float[] /// 128-dimensional array from face-api.js (NOT the raw image)
+  email          String? /// Optional email for notifications
+  department     String? /// Optional department grouping
+  createdAt      DateTime      @default(now()) /// Registration timestamp
+  updatedAt      DateTime      @updatedAt /// Last update timestamp
+  lunchRecords   LunchRecord[] /// Relation: all lunch records for this user
+}
+
+/// LunchRecord Model
+///
+/// Represents a single lunch scan event.
+/// Each record links a user to a specific date with a timestamp.
+///
+/// Duplicate Prevention:
+/// - @@unique([userId, date]) ensures one user can only scan once per day
+///
+/// Relations:
+/// - Each record belongs to exactly one user (many-to-one)
+/// - onDelete: Cascade means deleting a user also deletes their lunch records
+///
+/// Performance:
+/// - @@index([date]) enables fast queries for daily/monthly statistics
+model LunchRecord {
+  id         String   @id @default(cuid()) /// Unique identifier (CUID)
+  userId     String /// Foreign key to User.id
+  date       String /// Date in YYYY-MM-DD format (e.g., "2026-02-26")
+  timestamp  DateTime @default(now()) /// Exact time of scan
+  confidence Float? /// Face matching confidence score (0.0 to 1.0)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Composite unique constraint: prevents duplicate lunch scans on same day
+  @@unique([userId, date])
+  /// Index for efficient date-based queries (e.g., "today's count")
+  @@index([date])
+}
+

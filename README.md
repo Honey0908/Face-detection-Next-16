@@ -62,6 +62,238 @@ Run linting:
 pnpm eslint 'src/**/*.{ts,tsx}'
 ```
 
+## Database Setup
+
+This project uses **PostgreSQL** with **Prisma ORM** for database management.
+
+### Prerequisites
+
+- PostgreSQL database (e.g., Neon, Supabase, local PostgreSQL)
+- Node.js 18+ installed
+
+### Environment Configuration
+
+1. Copy `.env.example` to `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Set your `DATABASE_URL`:
+
+   ```env
+   DATABASE_URL="postgresql://user:password@host:5432/database?sslmode=require"
+   ```
+
+   **Format**: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require`
+
+   **Examples**:
+   - **Neon**: `postgresql://user:pass@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require`
+   - **Local**: `postgresql://postgres:password@localhost:5432/lunchtrack`
+
+3. For serverless deployments (Vercel), also set `DIRECT_URL`:
+   ```env
+   DIRECT_URL="postgresql://user:password@host:5432/database?sslmode=require"
+   ```
+
+### Database Schema
+
+The database has two main tables:
+
+- **User**: Employee profiles with face descriptors
+  - `id` (CUID primary key)
+  - `employeeId` (unique identifier)
+  - `name` (employee name)
+  - `faceDescriptor` (Float[] - 128-dimensional array for face matching)
+  - `email` (optional)
+  - `department` (optional)
+  - `timestamps` (createdAt, updatedAt)
+
+- **LunchRecord**: Daily lunch scan records
+  - `id` (CUID primary key)
+  - `userId` (foreign key to User)
+  - `date` (YYYY-MM-DD format)
+  - `timestamp` (exact scan time)
+  - `confidence` (face match confidence score)
+  - Unique constraint on `[userId, date]` prevents duplicate scans
+
+### Prisma Commands
+
+#### Initial Setup
+
+```bash
+# Install dependencies
+pnpm install
+
+# Generate Prisma Client (auto-runs on postinstall)
+npx prisma generate
+
+# Apply database schema
+npx prisma db push
+```
+
+#### Development Migrations
+
+```bash
+# Create and apply a new migration
+npx prisma migrate dev --name your_migration_name
+
+# Reset database (⚠️ deletes all data)
+npx prisma migrate reset
+
+# Check migration status
+npx prisma migrate status
+```
+
+#### Production Migrations
+
+```bash
+# Apply pending migrations (CI/CD)
+npx prisma migrate deploy
+```
+
+#### Database Inspection
+
+```bash
+# Open Prisma Studio (visual database editor)
+npx prisma studio
+
+# Pull schema from existing database
+npx prisma db pull
+
+# Validate schema file
+npx prisma validate
+```
+
+### Connection Pooling
+
+For production, use connection pooling to handle serverless function scaling:
+
+```env
+# Pooled connection (for queries)
+DATABASE_URL="postgresql://user:pass@pooler-host:5432/db?pgbouncer=true"
+
+# Direct connection (for migrations)
+DIRECT_URL="postgresql://user:pass@direct-host:5432/db"
+```
+
+**Neon Example**:
+
+- Pooled: `ep-xxx-pooler.c-4.us-east-1.aws.neon.tech`
+- Direct: `ep-xxx.c-4.us-east-1.aws.neon.tech`
+
+### Database Utilities
+
+Import database operations from `src/lib/db/`:
+
+```typescript
+// User operations
+import { getUserByEmployeeId, createUser, getAllUsers } from '@/lib/db/user';
+
+// Lunch record operations
+import {
+  createLunchRecord,
+  getLunchRecordByUserAndDate,
+  getTodayLunchCount,
+  getMonthlyLunchStats,
+} from '@/lib/db/lunch-record';
+
+// Example: Check if user scanned today
+const today = getTodayDateString();
+const existing = await getLunchRecordByUserAndDate(userId, today);
+if (existing) {
+  console.log('Already scanned today!');
+}
+```
+
+### Validation
+
+Input validation uses Zod schemas:
+
+```typescript
+import {
+  createUserSchema,
+  faceDescriptorSchema,
+} from '@/lib/validation/schemas';
+
+// Validate user input
+const result = createUserSchema.safeParse(data);
+if (result.success) {
+  await createUser(result.data);
+}
+```
+
+### Error Handling
+
+Custom error types for better error messages:
+
+```typescript
+import {
+  DuplicateLunchRecordError,
+  UserNotFoundError,
+  isDatabaseError,
+  getErrorStatusCode,
+} from '@/lib/db/errors';
+
+try {
+  await createLunchRecord({ userId, date });
+} catch (error) {
+  if (error instanceof DuplicateLunchRecordError) {
+    return res.status(409).json({ error: 'Already scanned today' });
+  }
+  throw error;
+}
+```
+
+### Rollback Procedure
+
+If a migration fails in production:
+
+1. **Check migration status**:
+
+   ```bash
+   npx prisma migrate status
+   ```
+
+2. **Resolve failed migration**:
+
+   ```bash
+   # Mark as rolled back
+   npx prisma migrate resolve --rolled-back MIGRATION_NAME
+
+   # Fix schema and create new migration
+   npx prisma migrate dev --name fix_migration
+   ```
+
+3. **Deploy fixed migration**:
+
+   ```bash
+   npx prisma migrate deploy
+   ```
+
+4. **Verify with Studio**:
+   ```bash
+   npx prisma studio
+   ```
+
+### Testing
+
+Run comprehensive database tests:
+
+```bash
+pnpm tsx src/lib/db/__validate.ts
+```
+
+Tests verify:
+
+- Database connectivity
+- User CRUD operations
+- Face descriptor storage (128 floats)
+- Duplicate prevention
+- Cascade deletion
+- Query performance
+- Index efficiency
+
 ## Getting Started
 
 First, run the development server:
