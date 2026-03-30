@@ -125,6 +125,11 @@ The system SHALL capture still frames from live video for face detection.
 - **WHEN** performing continuous detection
 - **THEN** the system captures frames at regular intervals based on detection performance
 
+#### Scenario: Stable ready-state transition
+
+- **WHEN** continuous detection reports consecutive valid single-face results
+- **THEN** the system enters ready-to-capture UI state without transient per-frame oscillation
+
 ### Requirement: Error handling for webcam access failures
 
 The system SHALL provide specific error messages for different webcam access failures.

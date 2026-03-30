@@ -60,6 +60,8 @@ export function WebcamCapture({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isDetectingRef = useRef<boolean>(false);
+  const stableFaceFramesRef = useRef<number>(0);
 
   // State
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>(
@@ -195,7 +197,11 @@ export function WebcamCapture({
       return;
     }
 
-    setDetectionState(DetectionState.DETECTING);
+    // Guard against overlapping async detections from interval ticks.
+    if (isDetectingRef.current) {
+      return;
+    }
+    isDetectingRef.current = true;
 
     try {
       const result = await detectSingleFace(videoRef.current, {
@@ -205,7 +211,17 @@ export function WebcamCapture({
       });
 
       setLastDetection(result);
-      setDetectionState(result.state);
+
+      if (result.state === DetectionState.FACE_FOUND) {
+        stableFaceFramesRef.current += 1;
+
+        if (stableFaceFramesRef.current >= 2) {
+          setDetectionState(DetectionState.FACE_FOUND);
+        }
+      } else {
+        stableFaceFramesRef.current = 0;
+        setDetectionState(result.state);
+      }
 
       // Draw overlay if enabled
       if (showOverlay && canvasRef.current) {
@@ -214,6 +230,8 @@ export function WebcamCapture({
     } catch (error) {
       console.error('Detection error:', error);
       setDetectionState(DetectionState.ERROR);
+    } finally {
+      isDetectingRef.current = false;
     }
   }, [modelsLoaded, showOverlay, drawDetectionOverlay]);
 
@@ -259,6 +277,8 @@ export function WebcamCapture({
       clearInterval(detectionIntervalRef.current);
       detectionIntervalRef.current = null;
     }
+    isDetectingRef.current = false;
+    stableFaceFramesRef.current = 0;
     setDetectionState(DetectionState.IDLE);
   }, []);
 
