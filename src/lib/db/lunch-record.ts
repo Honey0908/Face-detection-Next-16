@@ -13,6 +13,9 @@ import {
 } from '../validation/schemas';
 import { z } from 'zod';
 
+// Export type for API usage
+export type CreateLunchRecordData = z.infer<typeof createLunchRecordSchema>;
+
 /**
  * Get lunch record by user ID and date
  *
@@ -40,6 +43,21 @@ export async function getLunchRecordByUserAndDate(
     console.error('Error fetching lunch record:', error);
     throw new Error('Failed to fetch lunch record');
   }
+}
+
+/**
+ * Get today's lunch record for a specific user
+ *
+ * Convenience wrapper for checking today's record.
+ *
+ * @param userId - User's unique ID
+ * @returns LunchRecord or null if not found
+ */
+export async function getTodayLunchRecord(
+  userId: string,
+): Promise<LunchRecord | null> {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  return getLunchRecordByUserAndDate(userId, today);
 }
 
 /**
