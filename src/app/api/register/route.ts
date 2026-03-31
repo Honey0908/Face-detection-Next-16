@@ -14,12 +14,15 @@ import {
   validateDescriptor,
 } from '@/lib/face/extraction';
 import { invalidateDescriptorCache } from '@/lib/face/matching';
-import { logRegistration } from '@/lib/logging';
+import { logRegistration, registrationLogger } from '@/lib/logging';
 import { createRegistrationTracker } from '@/lib/performance';
 
 // Request validation schema
 const registerSchema = z.object({
-  employeeId: z.string().min(1, 'Employee ID is required').trim(),
+  employeeId: z
+    .string()
+    .trim()
+    .min(3, 'Employee ID must be at least 3 characters'),
   name: z.string().min(1, 'Name is required').trim(),
   department: z.string().min(1, 'Department is required').trim(),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -56,10 +59,15 @@ export async function POST(request: NextRequest) {
       perf.end('validate');
     } catch (error) {
       if (error instanceof z.ZodError) {
+        registrationLogger.warn('Registration request validation failed', {
+          issueCount: error.issues.length,
+          fields: error.issues.map((issue) => issue.path.join('.')),
+        });
+
         return NextResponse.json(
           {
             success: false,
-            error: 'Validation failed',
+            error: 'VALIDATION_ERROR',
             details: error.issues.map((e: z.ZodIssue) => ({
               field: e.path.join('.'),
               message: e.message,
@@ -181,7 +189,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Failed to create user record',
+          error: 'INTERNAL_ERROR',
+          message: 'Failed to create user record',
         },
         { status: 500 },
       );
@@ -192,7 +201,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Internal server error',
+        error: 'INTERNAL_ERROR',
+        message: 'Internal server error',
       },
       { status: 500 },
     );

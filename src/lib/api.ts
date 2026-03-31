@@ -18,6 +18,30 @@ interface FetchWithRetryOptions extends RequestInit {
   retryOptions?: RetryOptions;
 }
 
+export interface ApiErrorPayload {
+  success?: boolean;
+  error?: string;
+  message?: string;
+  details?: unknown;
+  [key: string]: unknown;
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly data: ApiErrorPayload;
+
+  constructor(message: string, status: number, data: ApiErrorPayload = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
+export function isApiError(error: unknown): error is ApiError {
+  return error instanceof ApiError;
+}
+
 const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
   maxRetries: 3,
   initialDelay: 1000, // 1 second
@@ -214,11 +238,16 @@ export async function apiRequest<T = unknown>(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
+    const errorData = (await response
+      .json()
+      .catch(() => ({}))) as ApiErrorPayload;
+
+    throw new ApiError(
       errorData.error ||
         errorData.message ||
         `API request failed with status ${response.status}`,
+      response.status,
+      errorData,
     );
   }
 

@@ -12,7 +12,7 @@ import { WebcamCapture } from '@/components/organisms/WebcamCapture';
 import { extractDescriptor, serializeDescriptor } from '@/lib/face/extraction';
 import { DetectionResult, DetectionState } from '@/lib/face/detection';
 import { ModelProvider } from '@/lib/face/ModelProvider';
-import { apiPost } from '@/lib/api';
+import { ApiError, apiPost, isApiError } from '@/lib/api';
 import { useToast } from '@/components';
 
 // Scan state enum (7 states)
@@ -40,6 +40,45 @@ export interface ScanResult {
   employeeName?: string;
   message: string;
   scannedTime?: string;
+}
+
+interface LunchScanSuccessResponse {
+  success: true;
+  message: string;
+  employeeName: string;
+  scannedTime?: string;
+}
+
+interface LunchScanErrorResponse {
+  success: false;
+  error?: string;
+  message?: string;
+  employeeName?: string;
+  scannedTime?: string;
+}
+
+type LunchScanResponse = LunchScanSuccessResponse | LunchScanErrorResponse;
+
+function isDuplicateResponse(response: LunchScanErrorResponse): boolean {
+  const errorCode = response.error?.toUpperCase();
+  const message = response.message?.toLowerCase() || '';
+
+  return (
+    errorCode === 'DUPLICATE_SCAN' ||
+    message.includes('already recorded') ||
+    message.includes('already scanned')
+  );
+}
+
+function isNotRegisteredResponse(response: LunchScanErrorResponse): boolean {
+  const errorCode = response.error?.toUpperCase();
+  const message = response.message?.toLowerCase() || '';
+
+  return (
+    errorCode === 'NOT_REGISTERED' ||
+    message.includes('not registered') ||
+    message.includes('no match found')
+  );
 }
 
 /**
@@ -162,13 +201,7 @@ function ScanInterfaceInner({
 
         // Submit to API with retry
         const descriptorArray = serializeDescriptor(result.descriptor);
-        const data = await apiPost<{
-          success: boolean;
-          message?: string;
-          employeeName?: string;
-          scannedTime?: string;
-          error?: string;
-        }>(
+        const data = await apiPost<LunchScanResponse>(
           '/api/lunch',
           { faceDescriptor: descriptorArray },
           {
@@ -181,10 +214,7 @@ function ScanInterfaceInner({
 
         if (!data.success) {
           // Handle specific error cases
-          if (
-            data.error?.includes('already recorded') ||
-            data.error?.includes('Already recorded')
-          ) {
+          if (isDuplicateResponse(data)) {
             setScanState(ScanState.ALREADY_TAKEN);
             setMessage(data.message || 'You have already recorded lunch today');
             setEmployeeName(data.employeeName || '');
@@ -192,10 +222,7 @@ function ScanInterfaceInner({
               data.message || 'You have already recorded lunch today',
               'Already Scanned',
             );
-          } else if (
-            data.error?.includes('not registered') ||
-            data.error?.includes('No match found')
-          ) {
+          } else if (isNotRegisteredResponse(data)) {
             setScanState(ScanState.NOT_REGISTERED);
             setMessage(
               data.message ||
@@ -234,12 +261,44 @@ function ScanInterfaceInner({
         });
         startCooldown();
       } catch (error) {
-        console.error('Scan error:', error);
+        if (isApiError(error)) {
+          const apiErrorData = error.data as LunchScanErrorResponse;
+
+          if (isDuplicateResponse(apiErrorData)) {
+            setScanState(ScanState.ALREADY_TAKEN);
+            const duplicateMessage =
+              apiErrorData.message || 'You have already recorded lunch today';
+            setMessage(duplicateMessage);
+            setEmployeeName(apiErrorData.employeeName || '');
+            showWarning(duplicateMessage, 'Already Scanned');
+            startCooldown();
+            return;
+          }
+
+          if (isNotRegisteredResponse(apiErrorData)) {
+            setScanState(ScanState.NOT_REGISTERED);
+            const notRegisteredMessage =
+              apiErrorData.message ||
+              'Face not recognized. Please register at the admin desk.';
+            setMessage(notRegisteredMessage);
+            showWarning(notRegisteredMessage, 'Not Registered');
+            startCooldown();
+            return;
+          }
+        }
+
         setScanState(ScanState.ERROR);
         const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'An error occurred during scan';
+          error instanceof ApiError
+            ? error.data.message || error.message
+            : error instanceof Error
+              ? error.message
+              : 'An error occurred during scan';
+
+        console.error('Scan error:', {
+          message: errorMessage,
+          type: error instanceof Error ? error.name : typeof error,
+        });
         setMessage(errorMessage);
         showError(errorMessage, 'Scan Error');
         startCooldown();

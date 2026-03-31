@@ -9,7 +9,7 @@ import * as faceapi from 'face-api.js';
 
 // Model loading state
 let modelsLoaded = false;
-let loadingPromise: Promise<void> | null = null;
+let initPromise: Promise<void> | null = null;
 
 // Model URLs
 const MODEL_URL = '/models';
@@ -63,9 +63,9 @@ export async function loadFaceModels(): Promise<void> {
     return;
   }
 
-  // Return existing promise if already loading
-  if (loadingPromise) {
-    return loadingPromise;
+  // Return existing promise if already initializing
+  if (initPromise) {
+    return initPromise;
   }
 
   // Check WebGL availability before attempting to load
@@ -75,8 +75,8 @@ export async function loadFaceModels(): Promise<void> {
     );
   }
 
-  // Create new loading promise with retry logic
-  loadingPromise = (async () => {
+  // Create a single initialization promise shared by concurrent callers
+  initPromise = (async () => {
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -111,14 +111,14 @@ export async function loadFaceModels(): Promise<void> {
       }
     }
 
-    // All retries failed
-    loadingPromise = null;
+    // All retries failed: allow clean retry on next call
+    initPromise = null;
     throw new Error(
       `Failed to load face models after ${MAX_RETRIES} attempts. ${lastError?.message || 'Unknown error'}`,
     );
   })();
 
-  return loadingPromise;
+  return initPromise;
 }
 
 /**
@@ -133,5 +133,5 @@ export function areModelsLoaded(): boolean {
  */
 export function resetLoadingState(): void {
   modelsLoaded = false;
-  loadingPromise = null;
+  initPromise = null;
 }

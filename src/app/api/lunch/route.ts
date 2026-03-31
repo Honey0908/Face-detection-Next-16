@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'No match found',
+          error: 'NOT_REGISTERED',
           message: 'Employee not registered. Please visit the admin desk.',
         },
         { status: 404 },
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Already recorded today',
+          error: 'DUPLICATE_SCAN',
           message: `Lunch already recorded today at ${new Date(existingRecord.timestamp).toLocaleTimeString()}`,
           employeeName: employeeName,
           scannedTime: existingRecord.timestamp.toISOString(),

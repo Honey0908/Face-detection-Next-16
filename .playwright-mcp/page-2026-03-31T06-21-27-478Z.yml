@@ -1,0 +1,20 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Lunch Scanner" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Scan your face to record lunch attendance
+    - generic [ref=e36]:
+      - img [ref=e38]
+      - heading "Honey Patel" [level=2] [ref=e40]
+      - paragraph [ref=e41]: Lunch already recorded today
+      - paragraph [ref=e42]: Returning to start in 4s...
+  - alert [ref=e44]:
+    - img [ref=e46]
+    - generic [ref=e48]:
+      - heading "Already Scanned" [level=3] [ref=e49]
+      - paragraph [ref=e50]: Lunch already recorded today at 11:38:04 AM
+    - button "Close notification" [ref=e51]:
+      - img [ref=e52]
+  - button "Open Next.js Dev Tools" [ref=e14] [cursor=pointer]:
+    - img [ref=e15]
+  - alert [ref=e18]

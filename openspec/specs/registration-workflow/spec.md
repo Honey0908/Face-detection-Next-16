@@ -108,7 +108,7 @@ The system SHALL validate all input data before database submission.
 
 ### Requirement: Registration API endpoint
 
-The system SHALL submit registration data to `/api/register` endpoint.
+The system SHALL submit registration data to `/api/register` endpoint and classify request-validation failures as client errors.
 
 #### Scenario: Successful registration request
 
@@ -120,10 +120,15 @@ The system SHALL submit registration data to `/api/register` endpoint.
 - **WHEN** API responds with success
 - **THEN** the system displays success message with employee name and resets form
 
-#### Scenario: Registration response error
+#### Scenario: Registration response validation error
 
-- **WHEN** API responds with error (duplicate ID, database error, etc.)
-- **THEN** the system displays specific error message and allows retry
+- **WHEN** API request body fails schema validation
+- **THEN** the API returns HTTP `400` with `{ success: false, error: "VALIDATION_ERROR", details: [...] }`
+
+#### Scenario: Registration response server error
+
+- **WHEN** API encounters an unexpected internal failure
+- **THEN** the API returns HTTP `500` with `{ success: false, error: "INTERNAL_ERROR", message: string }`
 
 ### Requirement: Registration workflow state machine
 
@@ -208,7 +213,7 @@ The system SHALL record employee consent for biometric data collection.
 
 ### Requirement: Registration error handling
 
-The system SHALL handle various error scenarios gracefully.
+The system SHALL handle various error scenarios gracefully and avoid retrying non-retriable validation failures.
 
 #### Scenario: Network error during submission
 
@@ -224,6 +229,11 @@ The system SHALL handle various error scenarios gracefully.
 
 - **WHEN** face-api.js models fail to load
 - **THEN** the system shows "Models not ready" message and disables capture functionality
+
+#### Scenario: Validation failure response handling
+
+- **WHEN** the API returns HTTP `400` with `VALIDATION_ERROR`
+- **THEN** the client displays field-level and/or form-level validation feedback and MUST NOT auto-retry the request
 
 ### Requirement: Registration performance expectations
 

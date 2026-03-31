@@ -1,18 +1,4 @@
-## ADDED Requirements
-
-### Requirement: Database connection initialization
-
-The system SHALL establish a connection to PostgreSQL database using environment-configured connection strings with automatic connection pooling.
-
-#### Scenario: Successful connection on application startup
-
-- **WHEN** the application starts
-- **THEN** the system establishes a database connection using DATABASE_URL from environment variables
-
-#### Scenario: Connection failure handling
-
-- **WHEN** database connection fails during initialization
-- **THEN** the system throws a descriptive error and prevents application startup
+## MODIFIED Requirements
 
 ### Requirement: Connection pooling configuration
 
@@ -52,19 +38,7 @@ The system SHALL use a singleton pattern for the Prisma client to prevent multip
 - **WHEN** keep-alive logic is enabled
 - **THEN** exactly one singleton Prisma client manages periodic keep-alive queries per process
 
-### Requirement: Environment-based configuration
-
-The system SHALL support separate database connection strings for different environments and use cases.
-
-#### Scenario: Development environment
-
-- **WHEN** NODE_ENV is "development"
-- **THEN** the system connects using DATABASE_URL for direct PostgreSQL access
-
-#### Scenario: Production with migrations
-
-- **WHEN** running database migrations in serverless environment
-- **THEN** the system uses DIRECT_URL if provided, otherwise falls back to DATABASE_URL
+## ADDED Requirements
 
 ### Requirement: Database keep-alive health check
 
@@ -84,31 +58,3 @@ The system SHALL execute a lightweight periodic keep-alive query to reduce idle 
 
 - **WHEN** runtime environment is test
 - **THEN** the system disables periodic keep-alive execution by default
-
-### Requirement: Connection error logging
-
-The system SHALL log detailed connection errors while protecting sensitive credentials from logs.
-
-#### Scenario: Connection error without credentials
-
-- **WHEN** database connection fails
-- **THEN** the system logs error details without exposing DATABASE_URL or password
-
-#### Scenario: Connection retry information
-
-- **WHEN** connection retry is attempted
-- **THEN** the system logs retry attempt number and reason
-
-### Requirement: Graceful connection closure
-
-The system SHALL close database connections gracefully during application shutdown to prevent connection leaks.
-
-#### Scenario: Application shutdown
-
-- **WHEN** application receives termination signal
-- **THEN** the system disconnects all Prisma client connections before exiting
-
-#### Scenario: Connection cleanup on error
-
-- **WHEN** unhandled error occurs during operation
-- **THEN** the system ensures database connections are released before throwing error

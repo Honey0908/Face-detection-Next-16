@@ -32,7 +32,7 @@ The system SHALL enable employees to scan their face for automatic lunch recordi
 
 ### Requirement: Scan state machine implementation
 
-The system SHALL implement explicit state machine for scan flow with 7 states.
+The system SHALL implement explicit state machine for scan flow with 7 states and map duplicate responses to `ALREADY_TAKEN` without falling through to generic error state.
 
 #### Scenario: IDLE state
 
@@ -59,9 +59,9 @@ The system SHALL implement explicit state machine for scan flow with 7 states.
 - **WHEN** match is found and lunch is recorded
 - **THEN** the system transitions to SUCCESS, displays "Success! Welcome, [Name]", and starts 5-second cooldown
 
-#### Scenario: ALREADY_TAKEN state
+#### Scenario: ALREADY_TAKEN state from API duplicate
 
-- **WHEN** employee has already scanned today
+- **WHEN** API returns `success: false` with `error: "DUPLICATE_SCAN"`
 - **THEN** the system transitions to ALREADY_TAKEN, displays "Already recorded", and starts 5-second cooldown
 
 #### Scenario: NOT_REGISTERED state
@@ -71,7 +71,7 @@ The system SHALL implement explicit state machine for scan flow with 7 states.
 
 #### Scenario: ERROR state
 
-- **WHEN** any error occurs (network, camera, etc.)
+- **WHEN** any non-duplicate error occurs (network, camera, malformed response, etc.)
 - **THEN** the system transitions to ERROR, displays error message, and provides "Try Again" button
 
 ### Requirement: Scan timeout enforcement
@@ -133,7 +133,7 @@ The system SHALL enforce a 5-second cooldown after successful or duplicate scans
 
 ### Requirement: Scan API endpoint integration
 
-The system SHALL submit face descriptors to `/api/lunch` endpoint for matching and recording.
+The system SHALL submit face descriptors to `/api/lunch` endpoint for matching and recording, and MUST parse duplicate responses into a deterministic UI state.
 
 #### Scenario: Scan request format
 
@@ -148,17 +148,17 @@ The system SHALL submit face descriptors to `/api/lunch` endpoint for matching a
 #### Scenario: Duplicate response
 
 - **WHEN** API detects duplicate scan
-- **THEN** the system receives `{ success: false, message: "Already recorded today", employeeName: string }`
+- **THEN** the system receives `{ success: false, error: "DUPLICATE_SCAN", message: string, employeeName: string }`
 
 #### Scenario: Not found response
 
 - **WHEN** API finds no match
-- **THEN** the system receives `{ success: false, message: "Employee not registered" }`
+- **THEN** the system receives `{ success: false, error: "NOT_REGISTERED", message: string }`
 
 #### Scenario: Error response
 
 - **WHEN** API encounters an error
-- **THEN** the system receives `{ success: false, error: string }`
+- **THEN** the system receives `{ success: false, error: string, message?: string }`
 
 ### Requirement: Single face validation during scan
 
