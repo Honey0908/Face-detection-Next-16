@@ -31,3 +31,27 @@ export type UserWithLunchRecords = Prisma.UserGetPayload<{
 export type LunchRecordWithUser = Prisma.LunchRecordGetPayload<{
   include: { user: true };
 }>;
+
+export interface UserListItem {
+  id: string;
+  employeeId: string;
+  name: string;
+  department: string | null;
+  email: string | null;
+  createdAt: Date;
+}
+
+export interface UserListPagination {
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface UserListApiResponse {
+  success: true;
+  data: {
+    users: UserListItem[];
+    pagination: UserListPagination;
+  };
+}

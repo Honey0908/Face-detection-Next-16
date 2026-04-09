@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import { isAdminFromCookies } from '@/lib/auth/admin.server';
 
-export default function Navbar() {
+export default async function Navbar() {
+  const isAdmin = await isAdminFromCookies();
+
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,6 +21,14 @@ export default function Navbar() {
             >
               Scan Lunch
             </Link>
+            {isAdmin && (
+              <Link
+                href="/users"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Users
+              </Link>
+            )}
             <Link
               href="/register"
               className="text-sm font-medium text-white bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-md transition-colors"

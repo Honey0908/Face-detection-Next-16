@@ -10,6 +10,30 @@ import { User, Prisma } from '@prisma/client';
 import { createUserSchema } from '../validation/schemas';
 import { z } from 'zod';
 
+export type UsersSortField = 'name' | 'department' | 'createdAt';
+export type UsersSortOrder = 'asc' | 'desc';
+
+export interface ListUsersOptions {
+  page: number;
+  limit: number;
+  sort: UsersSortField;
+  order: UsersSortOrder;
+  department?: string;
+}
+
+export interface ListUsersResult {
+  users: Array<
+    Pick<
+      User,
+      'id' | 'employeeId' | 'name' | 'department' | 'email' | 'createdAt'
+    >
+  >;
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 /**
  * Get user by employee ID
  *
@@ -173,5 +197,54 @@ export async function getUserCount(): Promise<number> {
   } catch (error) {
     console.error('Error counting users:', error);
     throw new Error('Failed to count users');
+  }
+}
+
+/**
+ * Get users with pagination, sorting, and optional department filter.
+ */
+export async function listUsers(
+  options: ListUsersOptions,
+): Promise<ListUsersResult> {
+  const { page, limit, sort, order, department } = options;
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.UserWhereInput = {
+    ...(department
+      ? { department: { equals: department, mode: 'insensitive' } }
+      : {}),
+  };
+
+  try {
+    const [users, totalCount] = await prisma.$transaction([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          [sort]: order,
+        },
+        select: {
+          id: true,
+          employeeId: true,
+          name: true,
+          department: true,
+          email: true,
+          createdAt: true,
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return {
+      users,
+      totalCount,
+      page,
+      pageSize: limit,
+      totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+    };
+  } catch (error) {
+    console.error('Error listing users:', error);
+    throw new Error('Failed to list users');
   }
 }

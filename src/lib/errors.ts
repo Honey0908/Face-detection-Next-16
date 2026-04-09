@@ -214,7 +214,7 @@ export function createErrorContext(
   const message = typeof error === 'string' ? error : error.message;
 
   // Get user-friendly message based on category
-  let userMessage = ERROR_MESSAGES.UNKNOWN_ERROR;
+  let userMessage: string = ERROR_MESSAGES.UNKNOWN_ERROR;
 
   // Try to match specific error messages
   for (const [key, value] of Object.entries(ERROR_MESSAGES)) {

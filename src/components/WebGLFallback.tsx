@@ -68,7 +68,7 @@ export function WebGLFallback({ children, fallback }: WebGLFallbackProps) {
  */
 function DefaultWebGLFallback() {
   return (
-    <Card variant="outlined" className="p-6 max-w-md mx-auto">
+    <Card className="p-6 max-w-md mx-auto">
       <div className="text-center space-y-4">
         {/* Icon */}
         <div className="flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mx-auto">
@@ -177,15 +177,15 @@ function DefaultWebGLFallback() {
         {/* Actions */}
         <div className="flex gap-3 justify-center pt-2">
           <Button
-            variant="outlined"
-            size="medium"
+            variant="outline"
+            size="md"
             onClick={() => window.location.reload()}
           >
             Retry
           </Button>
           <Button
             variant="secondary"
-            size="medium"
+            size="md"
             onClick={() => window.open('https://get.webgl.org/', '_blank')}
           >
             Test WebGL

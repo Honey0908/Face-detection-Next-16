@@ -1,0 +1,11 @@
+{
+    "hooks": {
+        "SessionStart": [
+            {
+                "type": "command",
+                "command": "bash .github/hooks/scripts/require-env-file.sh"
+                // "timeout": 5
+            }
+        ]
+    }
+}

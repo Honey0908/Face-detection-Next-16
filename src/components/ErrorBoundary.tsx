@@ -62,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <Card variant="outlined" className="p-6 max-w-md mx-auto my-8">
+        <Card className="p-6 max-w-md mx-auto my-8">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mx-auto">
               <svg
@@ -95,16 +95,12 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="flex gap-3 justify-center">
-              <Button
-                variant="primary"
-                size="medium"
-                onClick={this.handleReset}
-              >
+              <Button variant="primary" size="md" onClick={this.handleReset}>
                 Try Again
               </Button>
               <Button
-                variant="outlined"
-                size="medium"
+                variant="outline"
+                size="md"
                 onClick={() => window.location.reload()}
               >
                 Reload Page

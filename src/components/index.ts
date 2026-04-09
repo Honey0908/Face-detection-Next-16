@@ -8,9 +8,6 @@ export { Avatar } from './atoms/Avatar';
 export { Card } from './atoms/Card';
 export { Toast } from './atoms/Toast';
 
-// Organisms
-export { default as Navbar } from './organisms/Navbar';
-
 // Molecules
 export { FormField } from './molecules/FormField';
 export { SearchField } from './molecules/SearchField';
