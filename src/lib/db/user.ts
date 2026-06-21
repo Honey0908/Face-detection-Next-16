@@ -206,6 +206,7 @@ export async function getUserCount(): Promise<number> {
 export async function listUsers(
   options: ListUsersOptions,
 ): Promise<ListUsersResult> {
+  'use cache';
   const { page, limit, sort, order, department } = options;
   const skip = (page - 1) * limit;
 
